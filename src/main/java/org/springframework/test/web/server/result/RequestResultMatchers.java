@@ -16,11 +16,22 @@
 
 package org.springframework.test.web.server.result;
 
+import static org.hamcrest.Matchers.equalTo;
+
+import java.util.concurrent.Callable;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
+import org.springframework.web.context.request.async.AsyncTask;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.context.request.async.WebAsyncManager;
+import org.springframework.web.context.request.async.WebAsyncUtils;
 
 /**
  * Factory for assertions on the request. An instance of this class is
@@ -36,6 +47,66 @@ public class RequestResultMatchers {
 	 * Use {@link MockMvcResultMatchers#request()}.
 	 */
 	protected RequestResultMatchers() {
+	}
+
+	/**
+	 * Assert a request attribute value with the given Hamcrest {@link Matcher}.
+	 * Whether asynchronous processing started, usually as a result of a
+	 * controller method returning {@link Callable} or {@link DeferredResult}.
+	 * The test will await the completion of a {@code Callable} so that
+	 * {@link #asyncResult(Matcher)} can be used to assert the resulting value.
+	 * Neither a {@code Callable} nor a {@code DeferredResult} will complete
+	 * processing all the way since a {@link MockHttpServletRequest} does not
+	 * perform asynchronous dispatches.
+	 */
+	public ResultMatcher asyncStarted() {
+		return new ResultMatcher() {
+			public void match(MvcResult result) {
+				HttpServletRequest request = result.getRequest();
+				MatcherAssert.assertThat("Async started", request.isAsyncStarted(), equalTo(true));
+			}
+		};
+	}
+
+	/**
+	 * Assert that asynchronous processing was not start.
+	 * @see #asyncStarted()
+	 */
+	public ResultMatcher asyncNotStarted() {
+		return new ResultMatcher() {
+			public void match(MvcResult result) {
+				HttpServletRequest request = result.getRequest();
+				MatcherAssert.assertThat("Async started", request.isAsyncStarted(), equalTo(false));
+			}
+		};
+	}
+
+	/**
+	 * Assert the result from asynchronous processing with the given matcher.
+	 * This method can be used when a controller method returns {@link Callable}
+	 * or {@link AsyncTask}. The value matched is the value returned from the
+	 * {@code Callable} or the exception raised.
+	 */
+	public <T> ResultMatcher asyncResult(final Matcher<T> matcher) {
+		return new ResultMatcher() {
+			@SuppressWarnings("unchecked")
+			public void match(MvcResult result) {
+				HttpServletRequest request = result.getRequest();
+				WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+				MatcherAssert.assertThat("Async started", request.isAsyncStarted(), equalTo(true));
+				MatcherAssert.assertThat("Callable result", (T) asyncManager.getConcurrentResult(), matcher);
+			}
+		};
+	}
+
+	/**
+	 * Assert the result from asynchronous processing.
+	 * This method can be used when a controller method returns {@link Callable}
+	 * or {@link AsyncTask}. The value matched is the value returned from the
+	 * {@code Callable} or the exception raised.
+	 */
+	public <T> ResultMatcher asyncResult(Object expectedResult) {
+		return asyncResult(equalTo(expectedResult));
 	}
 
 	/**

@@ -82,7 +82,6 @@ public class WarRootDirectoryTests {
 	public void resourceRequest() throws Exception {
 		mockMvc.perform(get("/resources/Spring.js"))
 			.andExpect(status().isOk())
-			.andExpect(content().mimeType("text/javascript"))
 			.andExpect(content().string(containsString("Spring={};")));
 	}
 
