@@ -16,17 +16,21 @@
 
 package org.springframework.test.web.server.request;
 
+import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletContext;
+import javax.servlet.ServletRequest;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
+import org.springframework.util.ClassUtils;
 
 /**
  * Default builder for {@link MockMultipartHttpServletRequest}.
@@ -92,11 +96,25 @@ public class MockMultipartHttpServletRequestBuilder extends MockHttpServletReque
 
 	@Override
 	protected final MockHttpServletRequest createServletRequest(ServletContext servletContext) {
-		MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
+		MockMultipartHttpServletRequest request = ClassUtils.hasMethod(ServletRequest.class, "startAsync") ?
+				createServlet3Request() : new MockMultipartHttpServletRequest();
+
 		for (MockMultipartFile file : this.files) {
 			request.addFile(file);
 		}
 		return request;
+	}
+
+	private static MockMultipartHttpServletRequest createServlet3Request() {
+		try {
+			String className = "org.springframework.test.web.server.request.Servlet3MockMultipartHttpServletRequest";
+			Class<?> clazz = ClassUtils.forName(className, MockMultipartHttpServletRequestBuilder.class.getClassLoader());
+			Constructor<?> constructor = clazz.getConstructor(ServletContext.class);
+			return (MockMultipartHttpServletRequest) BeanUtils.instantiateClass(constructor);
+		}
+		catch (Throwable t) {
+			throw new IllegalStateException("Failed to instantiate MockHttpServletRequest", t);
+		}
 	}
 
 }

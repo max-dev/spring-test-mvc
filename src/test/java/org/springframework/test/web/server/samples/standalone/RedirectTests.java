@@ -51,7 +51,7 @@ public class RedirectTests {
 	@Test
 	public void save() throws Exception {
 		this.mockMvc.perform(post("/persons").param("name", "Andy"))
-			.andExpect(status().isOk())
+			.andExpect(status().isMovedTemporarily())
             .andExpect(redirectedUrl("/persons/Joe"))
             .andExpect(model().size(1))
             .andExpect(model().attributeExists("name"))

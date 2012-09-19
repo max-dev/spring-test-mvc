@@ -37,6 +37,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.test.web.Person;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.ui.Model;
+import org.springframework.web.accept.ContentNegotiationManager;
+import org.springframework.web.accept.FixedContentNegotiationStrategy;
+import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -101,9 +104,13 @@ public class ViewResolutionTests {
 		viewList.add(new MappingJacksonJsonView());
 		viewList.add(new MarshallingView(marshaller));
 
+		ContentNegotiationManager manager = new ContentNegotiationManager(
+				new HeaderContentNegotiationStrategy(), new FixedContentNegotiationStrategy(MediaType.TEXT_HTML));
+
 		ContentNegotiatingViewResolver cnViewResolver = new ContentNegotiatingViewResolver();
 		cnViewResolver.setDefaultViews(viewList);
-		cnViewResolver.setDefaultContentType(MediaType.TEXT_HTML);
+		cnViewResolver.setContentNegotiationManager(manager);
+		cnViewResolver.afterPropertiesSet();
 
 		MockMvc mockMvc =
 			standaloneSetup(new PersonController())

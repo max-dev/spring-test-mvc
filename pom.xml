@@ -8,8 +8,8 @@
 	<version>1.0.0.BUILD-SNAPSHOT</version>
 
 	<properties>
-		<spring.framework.version>3.1.2.RELEASE</spring.framework.version>
 		<spring.security.version>3.1.2.RELEASE</spring.security.version>
+		<spring.framework.version>3.2.0.BUILD-SNAPSHOT</spring.framework.version>
 	</properties>
 
 	<dependencies>
@@ -29,9 +29,9 @@
 			<version>${spring.framework.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-servlet-api</artifactId>
+			<version>7.0.8</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

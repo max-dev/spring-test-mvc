@@ -16,11 +16,23 @@
 
 package org.springframework.test.web.server;
 
+import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.context.request.async.CallableProcessingInterceptor;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.context.request.async.DeferredResultProcessingInterceptor;
+import org.springframework.web.context.request.async.WebAsyncManager;
+import org.springframework.web.context.request.async.WebAsyncUtils;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.ModelAndView;
@@ -45,6 +57,28 @@ final class TestDispatcherServlet extends DispatcherServlet {
 
 	protected DefaultMvcResult getMvcResult(ServletRequest request) {
 		return (DefaultMvcResult) request.getAttribute(MockMvc.MVC_RESULT_ATTRIBUTE);
+	}
+
+	@Override
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+
+		TestCallableInterceptor callableInterceptor = new TestCallableInterceptor();
+		asyncManager.registerCallableInterceptor("mock-mvc", callableInterceptor);
+
+		TestDeferredResultInterceptor deferredResultInterceptor = new TestDeferredResultInterceptor();
+		asyncManager.registerDeferredResultInterceptor("mock-mvc", deferredResultInterceptor);
+
+		super.service(request, response);
+
+		Object handler = getMvcResult(request).getHandler();
+		if (asyncManager.isConcurrentHandlingStarted() && !deferredResultInterceptor.wasInvoked) {
+			if (!callableInterceptor.await()) {
+				throw new ServletException(
+						"Gave up waiting on Callable from [" + handler.getClass().getName() + "] to complete");
+			}
+		}
 	}
 
 	@Override
@@ -79,6 +113,40 @@ final class TestDispatcherServlet extends DispatcherServlet {
 		mvcResult.setModelAndView(mav);
 
 		return mav;
+	}
+
+
+	private final class TestCallableInterceptor implements CallableProcessingInterceptor {
+
+		private final CountDownLatch latch = new CountDownLatch(1);
+
+		private boolean await() {
+			try {
+				return this.latch.await(5, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				return false;
+			}
+		}
+
+		public void preProcess(NativeWebRequest request, Callable<?> task) { }
+
+		public void postProcess(NativeWebRequest request, Callable<?> task, Object concurrentResult) {
+			this.latch.countDown();
+		}
+	}
+
+	private final class TestDeferredResultInterceptor implements DeferredResultProcessingInterceptor {
+
+		private boolean wasInvoked;
+
+		public void preProcess(NativeWebRequest request, DeferredResult<?> deferredResult) {
+			this.wasInvoked = true;
+		}
+
+		public void postProcess(NativeWebRequest request, DeferredResult<?> deferredResult, Object concurrentResult) { }
+
+		public void afterExpiration(NativeWebRequest request, DeferredResult<?> deferredResult) { }
 	}
 
 }

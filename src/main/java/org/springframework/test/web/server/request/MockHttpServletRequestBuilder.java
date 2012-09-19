@@ -16,6 +16,7 @@
 
 package org.springframework.test.web.server.request;
 
+import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import javax.servlet.http.Cookie;
 
 import org.springframework.beans.Mergeable;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -42,6 +44,7 @@ import org.springframework.test.web.server.MockMvc;
 import org.springframework.test.web.server.RequestBuilder;
 import org.springframework.test.web.server.setup.MockMvcBuilders;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
@@ -619,7 +622,20 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 	 * {@link ServletContext}. Can be overridden in sub-classes.
 	 */
 	protected MockHttpServletRequest createServletRequest(ServletContext servletContext) {
-		return new MockHttpServletRequest(servletContext);
+		return ClassUtils.hasMethod(ServletRequest.class, "startAsync") ?
+				createServlet3Request(servletContext) : new MockHttpServletRequest(servletContext);
+	}
+
+	private static MockHttpServletRequest createServlet3Request(ServletContext servletContext) {
+		try {
+			String className = "org.springframework.test.web.server.request.Servlet3MockHttpServletRequest";
+			Class<?> clazz = ClassUtils.forName(className, MockHttpServletRequestBuilder.class.getClassLoader());
+			Constructor<?> constructor = clazz.getConstructor(ServletContext.class);
+			return (MockHttpServletRequest) BeanUtils.instantiateClass(constructor, servletContext);
+		}
+		catch (Throwable t) {
+			throw new IllegalStateException("Failed to instantiate MockHttpServletRequest", t);
+		}
 	}
 
 	/**
