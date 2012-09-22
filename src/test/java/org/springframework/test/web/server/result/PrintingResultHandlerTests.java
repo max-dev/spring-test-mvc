@@ -19,6 +19,7 @@ package org.springframework.test.web.server.result;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,6 +95,7 @@ public class PrintingResultHandlerTests {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("header", "headerValue");
 		headers.setContentType(MediaType.TEXT_PLAIN);
+		headers.setLocation(new URI("/redirectFoo"));
 
 		assertValue("MockHttpServletResponse", "Status", this.response.getStatus());
 		assertValue("MockHttpServletResponse", "Error message", response.getErrorMessage());
