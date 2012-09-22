@@ -48,7 +48,7 @@ public class FlashAttributeAssertionTests {
 	@Before
 	public void setup() {
 		this.mockMvc = standaloneSetup(new PersonController())
-				.alwaysExpect(status().isOk())	// Should be 302 (fixed in Spring 3.2)
+				.alwaysExpect(status().isMovedTemporarily())
 				.alwaysExpect(flash().attributeCount(3))
 				.build();
 	}
