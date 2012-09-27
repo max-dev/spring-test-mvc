@@ -374,27 +374,6 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Assert the response status code is {@code HttpStatus.INSUFFICIENT_SPACE_ON_RESOURCE} (419).
-     */
-    public ResultMatcher isInsufficientSpaceOnResource() {
-        return matcher(HttpStatus.INSUFFICIENT_SPACE_ON_RESOURCE);
-    }
-
-    /**
-     * Assert the response status code is {@code HttpStatus.METHOD_FAILURE} (420).
-     */
-    public ResultMatcher isMethodFailure() {
-        return matcher(HttpStatus.METHOD_FAILURE);
-    }
-
-    /**
-     * Assert the response status code is {@code HttpStatus.DESTINATION_LOCKED} (421).
-     */
-    public ResultMatcher isDestinationLocked() {
-        return matcher(HttpStatus.DESTINATION_LOCKED);
-    }
-
-    /**
      * Assert the response status code is {@code HttpStatus.UNPROCESSABLE_ENTITY} (422).
      */
     public ResultMatcher isUnprocessableEntity() {
