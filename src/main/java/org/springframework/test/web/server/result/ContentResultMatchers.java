@@ -142,8 +142,6 @@ public class ContentResultMatchers {
 		};
 	}
 
-	// TODO: XML validation
-
 	/**
 	 * Parse the response content as {@link Node} and apply the given Hamcrest
 	 * {@link Matcher}.

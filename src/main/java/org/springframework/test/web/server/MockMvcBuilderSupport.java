@@ -31,7 +31,7 @@ import org.springframework.web.context.WebApplicationContext;
  * Base class for MockMvc builder implementations, providing the capability to
  * create a {@link MockMvc} instance.
  *
- * <p>{@link org.springframework.test.web.server.setup.AbstractMockMvcBuilder},
+ * <p>{@link org.springframework.test.web.server.setup.DefaultMockMvcBuilder},
  * which derives from this class, provides a concrete {@code build} method,
  * and delegates to abstract methods to obtain a {@link WebApplicationContext}.
  *
@@ -40,7 +40,7 @@ import org.springframework.web.context.WebApplicationContext;
  */
 public abstract class MockMvcBuilderSupport {
 
-	protected MockMvc createMockMvc(Filter[] filters, MockServletConfig servletConfig,
+	protected final MockMvc createMockMvc(Filter[] filters, MockServletConfig servletConfig,
 			WebApplicationContext webAppContext, RequestBuilder defaultRequestBuilder,
 			List<ResultMatcher> globalResultMatchers, List<ResultHandler> globalResultHandlers) {
 
@@ -64,7 +64,6 @@ public abstract class MockMvcBuilderSupport {
 
 		return mockMvc;
 	}
-
 
 	@SuppressWarnings("serial")
 	private static class MockMvcBuildException extends NestedRuntimeException {

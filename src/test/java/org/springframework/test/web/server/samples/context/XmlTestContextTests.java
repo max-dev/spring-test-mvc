@@ -32,12 +32,12 @@ import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * TestContext framework tests.
+ * Tests with XML configuration.
  *
  * The TestContext framework doesn't support WebApplicationContext yet:
  * https://jira.springsource.org/browse/SPR-5243
  *
- * A custom {@link ContextLoader} loads a WebApplicationContext.
+ * A custom {@link ContextLoader} is used to load the WebApplicationContext.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(
@@ -52,7 +52,7 @@ public class XmlTestContextTests {
 
 	@Before
 	public void setup() {
-		this.mockMvc = MockMvcBuilders.webApplicationContextSetup(this.wac).build();
+		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
 	}
 
 	@Test

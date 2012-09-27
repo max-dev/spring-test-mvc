@@ -27,13 +27,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Tests for {@link AbstractMockMvcBuilder}.
+ * Tests for {@link DefaultMockMvcBuilder}.
  *
  * @author Rob Winch
  */
-public class AbstractMockMvcBuilderTests {
+public class DefaultMockMvcBuilderTests {
 
-	private AbstractMockMvcBuilder builder;
+	private DefaultMockMvcBuilder<?> builder;
 
 	@Before
 	public void setup() {
@@ -76,4 +76,5 @@ public class AbstractMockMvcBuilderTests {
 			filterChain.doFilter(request, response);
 		}
 	}
+
 }

@@ -58,7 +58,7 @@ import org.springframework.web.context.support.ServletContextResourcePatternReso
  *
  * @author Rossen Stoyanchev
  */
-class MockWebApplicationContext implements WebApplicationContext {
+class StubWebApplicationContext implements WebApplicationContext {
 
 	private final ServletContext servletContext;
 
@@ -80,7 +80,7 @@ class MockWebApplicationContext implements WebApplicationContext {
 	/**
 	 * Class constructor.
 	 */
-	public MockWebApplicationContext(ServletContext servletContext) {
+	public StubWebApplicationContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
 		this.resourcePatternResolver = new ServletContextResourcePatternResolver(servletContext);
 	}
@@ -284,7 +284,7 @@ class MockWebApplicationContext implements WebApplicationContext {
 
 		public Object initializeBean(Object existingBean, String beanName) throws BeansException {
 			if (existingBean instanceof ApplicationContextAware) {
-				((ApplicationContextAware) existingBean).setApplicationContext(MockWebApplicationContext.this);
+				((ApplicationContextAware) existingBean).setApplicationContext(StubWebApplicationContext.this);
 			}
 			return existingBean;
 		}
@@ -338,4 +338,5 @@ class MockWebApplicationContext implements WebApplicationContext {
 			throw new UnsupportedOperationException("Post processing is not supported");
 		}
 	}
+
 }

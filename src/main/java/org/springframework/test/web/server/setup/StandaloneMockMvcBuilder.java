@@ -22,9 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import javax.servlet.ServletContext;
-
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.format.support.DefaultFormattingConversionService;
@@ -32,7 +29,6 @@ import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.context.WebApplicationContext;
@@ -46,7 +42,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -54,31 +49,30 @@ import org.springframework.web.servlet.handler.MappedInterceptor;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.servlet.support.SessionFlashMapManager;
 import org.springframework.web.servlet.theme.FixedThemeResolver;
 import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
- * A MockMvcBuilder that can be configured with controller instances allowing
+ * A MockMvcBuilder that accepts {@code @Controller} registrations thus allowing
  * full control over the instantiation and the initialization of controllers and
  * their dependencies similar to plain unit tests, and also making it possible
  * to test one controller at a time.
  *
- * <p>
- * This builder creates the minimum infrastructure required by the
+ * <p>This builder creates the minimum infrastructure required by the
  * {@link DispatcherServlet} to serve requests with annotated controllers and
- * also provides various methods to customize it. The resulting configuration
- * and customizations possible are equivalent to using the {@link EnableWebMvc
- * MVC Java config} except with builder style methods rather than the callback.
+ * also provides methods to customize it. The resulting configuration and
+ * customizations possible are equivalent to using the MVC Java config except
+ * using builder style methods.
  *
- * <p>
- * To configure view resolution, either select a "fixed" view to use for every
+ * <p>To configure view resolution, either select a "fixed" view to use for every
  * performed request (see {@link #setSingleView(View)}) or provide a list of
  * {@code ViewResolver}'s, see {@link #setViewResolvers(ViewResolver...)}.
  *
  * @author Rossen Stoyanchev
  */
-public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneMockMvcBuilder> {
+public class StandaloneMockMvcBuilder extends DefaultMockMvcBuilder<StandaloneMockMvcBuilder> {
 
 	private final Object[] controllers;
 
@@ -112,6 +106,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	 * @see MockMvcBuilders#standaloneSetup(Object...)
 	 */
 	protected StandaloneMockMvcBuilder(Object... controllers) {
+		super(new StubWebApplicationContext(new MockServletContext()));
 		Assert.isTrue(!ObjectUtils.isEmpty(controllers), "At least one controller is required");
 		this.controllers = controllers;
 	}
@@ -245,16 +240,13 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 		return this;
 	}
 
-	@Override
-	protected WebApplicationContext initWebApplicationContext() {
-		ServletContext servletContext = new MockServletContext();
-		MockWebApplicationContext cxt = new MockWebApplicationContext(servletContext);
-		registerMvcSingletons(cxt);
-		servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, cxt);
-		return cxt;
+	protected void initWebAppContext(WebApplicationContext cxt) {
+		StubWebApplicationContext mockCxt = (StubWebApplicationContext) cxt;
+		registerMvcSingletons(mockCxt);
+		cxt.getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, mockCxt);
 	}
 
-	private void registerMvcSingletons(MockWebApplicationContext cxt) {
+	private void registerMvcSingletons(StubWebApplicationContext cxt) {
 
 		StandaloneConfiguration configuration = new StandaloneConfiguration();
 
@@ -276,44 +268,14 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 		cxt.addBean(DispatcherServlet.THEME_RESOLVER_BEAN_NAME, new FixedThemeResolver());
 		cxt.addBean(DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME, new DefaultRequestToViewNameTranslator());
 
-		initFlashMapManager();
+		this.flashMapManager = new SessionFlashMapManager();
 		cxt.addBean(DispatcherServlet.FLASH_MAP_MANAGER_BEAN_NAME, this.flashMapManager);
-	}
-
-	// TODO: remove in 3.2
-
-	private void initFlashMapManager() {
-		if (this.flashMapManager == null) {
-			String className = "org.springframework.web.servlet.support.DefaultFlashMapManager";
-			if (ClassUtils.isPresent(className, getClass().getClassLoader())) {
-				this.flashMapManager = instantiateClass(className);
-			}
-			else {
-				className = "org.springframework.web.servlet.support.SessionFlashMapManager";
-				this.flashMapManager = instantiateClass(className);
-			}
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T> T instantiateClass(String className) {
-		Class<?> clazz;
-		try {
-			clazz = ClassUtils.forName(className, StandaloneMockMvcBuilder.class.getClassLoader());
-		}
-		catch (ClassNotFoundException e) {
-			throw new BeanInitializationException("Could not instantiate " + className, e);
-		}
-		catch (LinkageError e) {
-			throw new BeanInitializationException("Could not instantiate " + className, e);
-		}
-		return (T) BeanUtils.instantiate(clazz);
 	}
 
 	private List<ViewResolver> initViewResolvers(WebApplicationContext wac) {
 
 		this.viewResolvers = (this.viewResolvers == null) ?
-				Arrays.<ViewResolver>asList(new InternalResourceViewResolver()) : viewResolvers;
+				Arrays.<ViewResolver>asList(new InternalResourceViewResolver()) : this.viewResolvers;
 
 		for (Object viewResolver : this.viewResolvers) {
 			if (viewResolver instanceof WebApplicationObjectSupport) {

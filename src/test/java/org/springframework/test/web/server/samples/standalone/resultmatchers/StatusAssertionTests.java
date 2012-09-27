@@ -16,8 +16,11 @@
 
 package org.springframework.test.web.server.samples.standalone.resultmatchers;
 
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThan;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
@@ -57,13 +60,12 @@ public class StatusAssertionTests {
 		this.mockMvc.perform(get("/badRequest")).andExpect(status().isBadRequest());
 	}
 
-// TODO: allOf() doesn't compile from the MVN CLI
-
-//	@Test
-//	public void testMatcher() throws Exception {
-//		this.mockMvc.perform(get("/badRequest"))
-//			.andExpect(status().is(allOf(greaterThanOrEqualTo(400), lessThan(500))));
-//	}
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMatcher() throws Exception {
+		this.mockMvc.perform(get("/badRequest"))
+			.andExpect(status().is(allOf(greaterThanOrEqualTo(400), lessThan(500))));
+	}
 
 	@Test
 	public void testReasonEqualTo() throws Exception {

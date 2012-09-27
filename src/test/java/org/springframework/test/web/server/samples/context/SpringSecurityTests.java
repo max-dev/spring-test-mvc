@@ -81,7 +81,7 @@ public class SpringSecurityTests {
 
 	@Before
 	public void setup() {
-		this.mockMvc = MockMvcBuilders.webApplicationContextSetup(this.wac)
+		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
 				.addFilters(this.springSecurityFilterChain).build();
 	}
 

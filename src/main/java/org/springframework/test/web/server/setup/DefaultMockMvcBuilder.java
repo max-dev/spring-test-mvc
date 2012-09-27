@@ -33,16 +33,17 @@ import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Abstract implementation of {@link MockMvcBuilder} that implements the actual
- * {@code build} method, provides convenient methods for configuring filters,
- * default request properties, and global expectations, and delegates to an
- * abstract method to obtain a {@link WebApplicationContext}.
+ * An concrete implementation of {@link MockMvcBuilder} with methods for
+ * configuring filters, default request properties, and global expectations and
+ * result actions.
  *
  * @author Rossen Stoyanchev
  * @author Rob Winch
  */
-public abstract class AbstractMockMvcBuilder<Self extends AbstractMockMvcBuilder<Self>>
-		extends MockMvcBuilderSupport implements MockMvcBuilder {
+public class DefaultMockMvcBuilder<Self extends MockMvcBuilder> extends MockMvcBuilderSupport
+		implements MockMvcBuilder {
+
+	private final WebApplicationContext webAppContext;
 
 	private List<Filter> filters = new ArrayList<Filter>();
 
@@ -52,6 +53,16 @@ public abstract class AbstractMockMvcBuilder<Self extends AbstractMockMvcBuilder
 
 	private final List<ResultHandler> globalResultHandlers = new ArrayList<ResultHandler>();
 
+
+	/**
+     * Protected constructor. Not intended for direct instantiation.
+     * @see MockMvcBuilders#webAppContextSetup(WebApplicationContext)
+	 */
+	protected DefaultMockMvcBuilder(WebApplicationContext webAppContext) {
+		Assert.notNull(webAppContext, "WebApplicationContext is required");
+		Assert.notNull(webAppContext.getServletContext(), "WebApplicationContext must have a ServletContext");
+		this.webAppContext = webAppContext;
+	}
 
 	/**
 	 * Add filters mapped to any request (i.e. "/*"). For example:
@@ -172,24 +183,23 @@ public abstract class AbstractMockMvcBuilder<Self extends AbstractMockMvcBuilder
 	 */
 	public final MockMvc build() {
 
-		WebApplicationContext webAppContext = initWebApplicationContext();
-		Assert.state(webAppContext != null, "WebApplicationContext not provided by concrete MockMvcBuilder");
+		initWebAppContext(this.webAppContext);
 
-		ServletContext servletContext = webAppContext.getServletContext();
-		Assert.state(servletContext != null,"ServletContext not configured by concrete MockMvcBuilder");
-
-		Filter[] filterArray = this.filters.toArray(new Filter[this.filters.size()]);
+		ServletContext servletContext = this.webAppContext.getServletContext();
 		MockServletConfig mockServletConfig = new MockServletConfig(servletContext);
 
-		return super.createMockMvc(filterArray, mockServletConfig, webAppContext,
+		Filter[] filterArray = this.filters.toArray(new Filter[this.filters.size()]);
+
+		return super.createMockMvc(filterArray, mockServletConfig, this.webAppContext,
 				this.defaultRequestBuilder, this.globalResultMatchers, this.globalResultHandlers);
 	}
 
 	/**
-	 * Return the WebApplicationContext to use. The return value must not be
-	 * {@code null}. Further, the {@code WebApplicationContext} should be
-	 * configured with a {@code ServletContext}.
+	 * Invoked from {@link #build()} before the {@link MockMvc} instance is created.
+	 * Allows sub-classes to further initialize the {@code WebApplicationContext}
+	 * and the {@code javax.servlet.ServletContext} it contains.
 	 */
-	protected abstract WebApplicationContext initWebApplicationContext();
+	protected void initWebAppContext(WebApplicationContext webAppContext) {
+	}
 
 }
