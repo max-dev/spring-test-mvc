@@ -22,6 +22,7 @@ import java.util.List;
 import javax.servlet.ServletContext;
 
 import org.springframework.beans.Mergeable;
+import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.Assert;

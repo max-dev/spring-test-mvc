@@ -23,6 +23,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
 import org.springframework.core.NestedRuntimeException;
+import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockServletConfig;
 import org.springframework.web.context.WebApplicationContext;
 
