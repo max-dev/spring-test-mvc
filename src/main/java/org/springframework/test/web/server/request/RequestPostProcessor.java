@@ -29,6 +29,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
  *
  * @author Rossen Stoyanchev
  * @author Rob Winch
+ * @since 3.2
  */
 public interface RequestPostProcessor {
 

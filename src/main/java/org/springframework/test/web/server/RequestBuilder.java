@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
  *
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
+ * @since 3.2
  */
 public interface RequestBuilder {
 

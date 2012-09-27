@@ -35,6 +35,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
  * A Servlet 3 sub-class of MockHttpServletRequest.
  *
  * @author Rossen Stoyanchev
+ * @since 3.2
  */
 class Servlet3MockHttpServletRequest extends MockHttpServletRequest {
 

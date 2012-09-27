@@ -33,6 +33,7 @@ import org.springframework.web.util.UrlPathHelper;
  * Servlet spec.
  *
  * @author Rob Winch
+ * @since 3.2
  */
 final class PatternMappingFilterProxy implements Filter {
 

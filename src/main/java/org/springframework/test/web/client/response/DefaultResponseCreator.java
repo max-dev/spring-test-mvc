@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * A {@code ResponseCreator} with builder-style methods for adding response details.
  *
  * @author Rossen Stoyanchev
+ * @since 3.2
  */
 public class DefaultResponseCreator implements ResponseCreator {
 

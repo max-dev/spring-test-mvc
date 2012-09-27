@@ -27,6 +27,7 @@ import org.springframework.web.servlet.support.RequestContextUtils;
  *
  * @author Rossen Stoyanchev
  * @author Rob Winch
+ * @since 3.2
  */
 class DefaultMvcResult implements MvcResult {
 

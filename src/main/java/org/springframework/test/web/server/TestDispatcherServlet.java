@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.web.servlet.ModelAndView;
  *
  * @author Rossen Stoyanchev
  * @author Rob Winch
+ * @since 3.2
  */
 @SuppressWarnings("serial")
 final class TestDispatcherServlet extends DispatcherServlet {
